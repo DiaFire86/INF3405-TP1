@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 // Application client
@@ -8,7 +10,7 @@ public class Client {
     public static void main(String[] args) throws Exception {
 // Adresse et port du serveur
         String serverAddress = "192.168.0.104";
-        int port = 5000;
+        int port = 0;
 
         Scanner scanner = new Scanner(System.in);
 
@@ -33,16 +35,19 @@ public class Client {
             }
         }
 
-        int serverPort = 0;
-        while(serverPort < 5000 || serverPort > 5050){
+        while(port < 5000 || port > 5050){
             System.out.println("Entrer un port: ");
-            serverPort = scanner.nextInt();
+            port = scanner.nextInt();
         }
         scanner.nextLine();
-//        scanner.close();
 
 // Création d'une nouvelle connexion aves le serveur
-        socket = new Socket(serverAddress, port);
+        try {
+        	socket = new Socket(serverAddress, port);
+        } catch (IOException e) {
+        	scanner.close();
+        	System.out.println("Error");
+        }
         System.out.format("ClientHandler.java lancé sur [%s:%d]", serverAddress, port);
         System.out.println("\n");
 
@@ -69,8 +74,18 @@ public class Client {
             messageListener.start();
             
 	        while(true){
-	            String messageOut = scanner.nextLine();
-	            out.writeUTF(messageOut);
+	            String messageScanned = scanner.next();
+	            if (messageScanned.length() <= 200)
+	            {
+	            	LocalDateTime now = LocalDateTime.now();
+	            	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd@HH:mm:ss");
+	            	String formattedDateTime = now.format(formatter);
+	            	String messageOut = "[" + username + " - " + serverAddress + ":" + port + " - " + formattedDateTime + "]: " + messageScanned;
+		            out.writeUTF(messageOut);
+	            }
+	            else {
+	            	System.out.println("Message is too long!" + '\n');
+	            }
 	        }
         }
         catch (IOException e) {
@@ -89,7 +104,7 @@ public class Client {
             String helloMessageFromServer = in.readUTF();
             System.out.println(helloMessageFromServer);
             // fermeture de La connexion avec le serveur
-            socket.close();
+            //socket.close();
         }
     }
 }

@@ -16,7 +16,7 @@ public class MessageListener implements Runnable {
             while (true) {
                 try {
                     String messageIn = in.readUTF();
-                    System.out.println("Received from server: " + messageIn);
+                    System.out.println(messageIn);
                 } catch (IOException e) {
                     System.out.println("Error reading from server: " + e.getMessage());
                     break; // Exit the loop on IO error
