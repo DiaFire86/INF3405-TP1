@@ -1,0 +1,5 @@
+INDEX VERSION 1.134+D:\Travail\Logiciel\INF3405\INF3405-TP1\.metadata\.plugins\org.eclipse.jdt.core
+1865797976.index
+2501520862.index
+137624701.index
+1067094681.index

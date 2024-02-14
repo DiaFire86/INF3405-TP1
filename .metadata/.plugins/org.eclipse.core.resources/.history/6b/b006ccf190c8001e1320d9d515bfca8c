@@ -1,0 +1,108 @@
+import java.io.*;
+import java.net.Socket;
+import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+
+public class ClientHandler extends Thread { // pour traiterla demandede chaqueclient sur un socket particulier
+    private Socket socket;
+    private int clientNumber;
+    private final String filePath = "credentials.txt";
+    String serverAddress = "192.168.0.104";
+    DataOutputStream out;
+    DataInputStream in;
+
+   
+    public ClientHandler(Socket socket, int clientNumber) throws IOException {
+        this.socket = socket;
+        this.clientNumber = clientNumber;
+        System.out.println("New connection with client#"+ clientNumber+ " at"+ socket);
+        out= new DataOutputStream(socket.getOutputStream()); // créationde canal d’envoi
+        // envoi de message
+        in = new DataInputStream(socket.getInputStream());
+    }
+    
+    private void writeFile(String username, String password) throws IOException {
+        FileWriter writer = new FileWriter(filePath, true);
+        BufferedWriter bufferedWriter = new BufferedWriter(writer);
+        bufferedWriter.write(username + "," + password + "\n");
+        bufferedWriter.close();
+        writer.close();
+    }
+    private boolean authenticate(String username, String password) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(filePath));
+        String line;
+        while((line = reader.readLine()) != null){
+            String[] userPswrd= line.split(",");
+            if(userPswrd[0].equals(username)){
+                if(userPswrd[1].equals(password)){
+                    System.out.println("Authenticated");
+                    return true;
+                }
+                else{
+                    System.out.println("Mauvais mot de passe");
+                    return false;
+                }
+            }
+        }
+        writeFile(username,password);
+        System.out.println("Nouveau compte créé");
+        return true;
+    }
+
+    public void run() {   // Créationde thread qui envoi un message àun client
+    	  Path path = Paths.get(filePath);
+
+    	  // Check if the file doesn't exist
+    	  if (!Files.exists(path)) {
+    	      try {
+    	          // Create the file
+    	          Files.createFile(path);
+    	          System.out.println("File created successfully.");
+    	      } catch (IOException e) {
+    	          System.err.println("Failed to create the file: " + e.getMessage());
+    	      }
+    	  }
+        try {        	
+            // Attente de la réception d'un message envoyé par le, server sur le canal
+            String username = in.readUTF();
+            String password = in.readUTF();
+//			out.writeUTF("u sent: " + username +" "+ password);
+            boolean isValid = authenticate(username, password);
+            if(!isValid){
+                String error = "Erreur dans la saisie du mot de passe";
+                out.writeUTF(error);
+            }
+            else{
+                out.writeUTF("Hello from server -you are client#"+ clientNumber);
+            }
+            
+            while(true)
+            {
+            	String message = in.readUTF();
+            	if(message == null)
+            	{
+            		break;
+            	}
+            	System.out.println(message);
+            	Server.broadcastMessage(message);
+            }
+
+        } catch(IOException e) {
+            System.out.println("Error handling client# "+ clientNumber+ ": "+ e);
+        } 
+        finally {
+            try {
+                socket.close();
+            } catch(IOException e) {
+                System.out.println("Couldn't close a socket, what's going on?");
+            }
+            System.out.println("Connection with client# "+ clientNumber+ " closed ");
+        }
+    }
+    public void sendMessage(String message) throws IOException {
+        out.writeUTF(message);
+    }
+}
