@@ -60,9 +60,18 @@ public class Client {
 //        Scanner keyboard = new Scanner(System.in);
         System.out.println("enter your username: ");
         String username = scanner.nextLine();
-
+        while (username == null)
+        {
+        	System.out.println("enter your username: ");
+            username = scanner.nextLine();
+        }
         System.out.println("enter your password: ");
         String password = scanner.nextLine();
+        while (password == null)
+        {
+        	System.out.println("enter your password: ");
+            password = scanner.nextLine();
+        }
 
         out.writeUTF(username); // envoi des proprietes du client
         out.writeUTF(password);
