@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.LinkedList;
-import java.util.Scanner;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,9 +11,9 @@ public class ClientHandler extends Thread { // pour traiterla demandede chaquecl
     private int clientNumber;
     private final String usersFilePath = "users.txt";
     private final String historyFilePath = "history.txt";
-    String serverAddress = "192.168.0.104";
-    DataOutputStream out;
-    DataInputStream in;
+    String serverAddress = "192.168.0.104"; 	
+    private static DataOutputStream out;
+    private static DataInputStream in;
     private static final int MAX_HISTORY_SIZE = 15;
     private static LinkedList<String> messageHistory = new LinkedList<>();
 
@@ -59,20 +58,21 @@ public class ClientHandler extends Thread { // pour traiterla demandede chaquecl
     }
     private boolean authenticate(String username, String password) throws IOException {
         BufferedReader reader = new BufferedReader(new FileReader(usersFilePath));
-        String line;
-        while((line = reader.readLine()) != null){
-            String[] userPswrd= line.split(",");
-            if(userPswrd[0].equals(username)){
-                if(userPswrd[1].equals(password)){
-                    System.out.println("Authenticated");
-                    return true;
-                }
-                else{
-                    System.out.println("Mauvais mot de passe");
-                    return false;
-                }
-            }
-        }
+			String line;
+			while((line = reader.readLine()) != null){
+			    String[] userPswrd= line.split(",");
+			    if(userPswrd[0].equals(username)){
+			        if(userPswrd[1].equals(password)){
+			            System.out.println("Authenticated");
+			            return true;
+			        }
+			        else{
+			            System.out.println("Mauvais mot de passe");
+			            return false;
+			        }
+			    }
+			reader.close();
+		}
         writeUsersFile(username,password);
         System.out.println("Nouveau compte créé");
         return true;
@@ -90,6 +90,9 @@ public class ClientHandler extends Thread { // pour traiterla demandede chaquecl
     	          System.err.println("Failed to create the file: " + e.getMessage());
     	      }
     	  }
+    	  else {
+    		  System.out.println("Users file already exist.");
+    	  }
     	  Path historyPath = Paths.get(historyFilePath);
     	  // Check if the file doesn't exist
     	  if (!Files.exists(historyPath)) {
@@ -100,6 +103,9 @@ public class ClientHandler extends Thread { // pour traiterla demandede chaquecl
     	      } catch (IOException e) {
     	          System.err.println("Failed to create the file: " + e.getMessage());
     	      }
+    	  }
+    	  else {
+    		  System.out.println("History file already exist.");
     	  }
         try {        	
             // Attente de la réception d'un message envoyé par le, server sur le canal
@@ -120,7 +126,7 @@ public class ClientHandler extends Thread { // pour traiterla demandede chaquecl
             while((line = reader.readLine()) != null){
             	out.writeUTF(line);
             }
-           
+            reader.close();
             while(true)
             {
             	String message = in.readUTF();

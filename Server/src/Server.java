@@ -1,5 +1,3 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -7,8 +5,6 @@ import java.util.List;
 import java.util.Scanner;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.io.DataInputStream;
-import java.net.Socket;
 
 
 public class Server {
